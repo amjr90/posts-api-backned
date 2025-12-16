@@ -8,20 +8,17 @@ app.use(cors())
 const posts = [{
   userId: 1,
   id: 1,
-  title: 'sunt aut facere repellat provident occaecati excepturi optio reprehenderit',
-  body: 'quia et suscipit suscipit recusandae consequuntur expedita et cum reprehenderit molestiae ut ut quas totam nostrum rerum est autem sunt rem eveniet architecto'
+  content: 'quia et suscipit suscipit recusandae consequuntur expedita et cum reprehenderit molestiae ut ut quas totam nostrum rerum est autem sunt rem eveniet architecto'
 },
 {
   userId: 1,
   id: 2,
-  title: 'qui est esse',
-  body: 'est rerum tempore vitae sequi sint nihil reprehenderit dsdolor beatae ea dolores neque fugiat blanditiis voluptate porro vel nihil molestiae ut reiciendis qui aperiam non debitis possimus qui neque nisi nulla'
+  content: 'est rerum tempore vitae sequi sint nihil reprehenderit dsdolor beatae ea dolores neque fugiat blanditiis voluptate porro vel nihil molestiae ut reiciendis qui aperiam non debitis possimus qui neque nisi nulla'
 },
 {
   userId: 1,
   id: 3,
-  title: 'ea molestias quasi exercitationem repellat qui ipsa sit aut',
-  body: 'et iusto sed quo iure voluptatem occaecati omnis eligendi aut ad voluptatem doloribus vel accusantium quis pariatur molestiae porro eius odio et labore et velit aut'
+  content: 'et iusto sed quo iure voluptatem occaecati omnis eligendi aut ad voluptatem doloribus vel accusantium quis pariatur molestiae porro eius odio et labore et velit aut'
 }]
 
 app.get('/', (req, res) => {
@@ -56,9 +53,8 @@ app.delete('/api/posts/:id', (req, res) => {
 app.post('/api/posts', express.json(), (req, res) => {
   const newPost = {
     userId: req.body.userId,
-    id: posts.length ? posts[posts.length - 1].id + 1 : 1,
-    title: req.body.title,
-    body: req.body.body
+    id: Math.random().toString(36).substr(2, 9),
+    content: req.body.content
   }
   posts.push(newPost)
   res.status(201).json(newPost)
