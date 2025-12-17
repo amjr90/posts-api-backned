@@ -4,6 +4,9 @@ const express = require('express')
 const cors = require('cors')
 const Post = require('./models/Post')
 
+const notFound = require('./middleware/notFound')
+const errorHandler = require('./middleware/errorHandler')
+
 const app = express()
 app.use(express.json())
 app.use(cors())
@@ -98,26 +101,9 @@ app.put('/api/posts/:id', async (req, res, next) => {
 })
 
 // Middleware de manejo de errores
-app.use((err, req, res, next) => {
-  console.error(err.stack)
-
-  switch (err.name) {
-    case 'CastError':
-      res.status(400).json({ error: 'Malformatted id', errorMsg: err.message })
-      break
-    case 'ValidationError':
-      res.status(400).json({ error: 'Validation error', errorMsg: err.message })
-      break
-    default:
-      res.status(500).json({ error: 'Something went wrong!', errorMsg: err.message })
-      break
-  }
-})
-
+app.use(errorHandler)
 // 404 para rutas no encontradas
-app.use((req, res) => {
-  res.status(404).json({ message: 'Endpoint not found' })
-})
+app.use(notFound)
 
 const PORT = process.env.PORT || 3001
 
