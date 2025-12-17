@@ -72,6 +72,31 @@ app.post('/api/posts', async (req, res, next) => {
   }
 })
 
+app.put('/api/posts/:id', async (req, res, next) => {
+  try {
+    const { userId, content } = req.body
+
+    // Validación simple
+    if (!userId || !content) {
+      return res.status(400).json({ error: 'userId and content are required' })
+    }
+
+    const updatedPost = await Post.findByIdAndUpdate(
+      req.params.id,
+      { userId, content },
+      { new: true, runValidators: true, context: 'query' }
+    )
+
+    if (updatedPost) {
+      res.json(updatedPost)
+    } else {
+      res.status(404).json({ message: 'Post not found' })
+    }
+  } catch (err) {
+    next(err)
+  }
+})
+
 // Middleware de manejo de errores
 app.use((err, req, res, next) => {
   console.error(err.stack)
