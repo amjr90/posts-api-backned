@@ -1,65 +1,95 @@
+require('dotenv').config()
+require('./mongo')
 const express = require('express')
 const cors = require('cors')
+const Post = require('./models/Post')
 
 const app = express()
 app.use(express.json())
 app.use(cors())
 
-const posts = [{
-  userId: 1,
-  id: 1,
-  content: 'quia et suscipit suscipit recusandae consequuntur expedita et cum reprehenderit molestiae ut ut quas totam nostrum rerum est autem sunt rem eveniet architecto'
-},
-{
-  userId: 1,
-  id: 2,
-  content: 'est rerum tempore vitae sequi sint nihil reprehenderit dsdolor beatae ea dolores neque fugiat blanditiis voluptate porro vel nihil molestiae ut reiciendis qui aperiam non debitis possimus qui neque nisi nulla'
-},
-{
-  userId: 1,
-  id: 3,
-  content: 'et iusto sed quo iure voluptatem occaecati omnis eligendi aut ad voluptatem doloribus vel accusantium quis pariatur molestiae porro eius odio et labore et velit aut'
-}]
-
 app.get('/', (req, res) => {
   res.send('<h1>Welcome to the Posts API</h1>')
 })
 
-app.get('/api/posts', (req, res) => {
-  res.json(posts)
-})
+// Callback con promesas (versión anterior)
+// app.get('/api/posts', (req, res, next) => {
+//   Post.find({}).then(posts => {
+//     res.json(posts).end()
+//   }).catch(err => {
+//     next(err)
+//   })
+// })
 
-app.get('/api/posts/:id', (req, res) => {
-  const postId = parseInt(req.params.id, 10)
-  const post = posts.find(p => p.id === postId)
-  if (post) {
-    res.json(post)
-  } else {
-    res.status(404).json({ message: 'Post not found' })
+app.get('/api/posts', async (req, res, next) => {
+  try {
+    const posts = await Post.find({})
+    res.json(posts)
+  } catch (err) {
+    next(err)
   }
 })
 
-app.delete('/api/posts/:id', (req, res) => {
-  const postId = parseInt(req.params.id, 10)
-  const postIndex = posts.findIndex(p => p.id === postId)
-  if (postIndex !== -1) {
-    posts.splice(postIndex, 1.0)
-    res.json({ message: 'Post deleted successfully' })
-  } else {
-    res.status(404).json({ message: 'Post not found' })
+app.get('/api/posts/:id', async (req, res, next) => {
+  try {
+    const post = await Post.findById(req.params.id)
+    if (post) {
+      res.json(post)
+    } else {
+      res.status(404).json({ message: 'Post not found' })
+    }
+  } catch (err) {
+    next(err)
   }
 })
 
-app.post('/api/posts', express.json(), (req, res) => {
-  const newPost = {
-    userId: req.body.userId,
-    id: Math.random().toString(36).substr(2, 9),
-    content: req.body.content
+app.delete('/api/posts/:id', async (req, res, next) => {
+  try {
+    const result = await Post.deleteOne({ _id: req.params.id })
+    if (result.deletedCount > 0) {
+      res.status(204).end()
+    } else {
+      res.status(404).json({ message: 'Post not found' })
+    }
+  } catch (err) {
+    next(err)
   }
-  posts.push(newPost)
-  res.status(201).json(newPost)
 })
 
+app.post('/api/posts', async (req, res, next) => {
+  try {
+    const { userId, content } = req.body
+
+    // Validación simple
+    if (!userId || !content) {
+      return res.status(400).json({ error: 'userId and content are required' })
+    }
+
+    const newPost = await Post.create({ userId, content })
+    res.status(201).json(newPost)
+  } catch (err) {
+    next(err)
+  }
+})
+
+// Middleware de manejo de errores
+app.use((err, req, res, next) => {
+  console.error(err.stack)
+
+  switch (err.name) {
+    case 'CastError':
+      res.status(400).json({ error: 'Malformatted id', errorMsg: err.message })
+      break
+    case 'ValidationError':
+      res.status(400).json({ error: 'Validation error', errorMsg: err.message })
+      break
+    default:
+      res.status(500).json({ error: 'Something went wrong!', errorMsg: err.message })
+      break
+  }
+})
+
+// 404 para rutas no encontradas
 app.use((req, res) => {
   res.status(404).json({ message: 'Endpoint not found' })
 })

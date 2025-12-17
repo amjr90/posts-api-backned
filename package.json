@@ -20,11 +20,8 @@
   },
   "dependencies": {
     "cors": "2.8.5",
-    "express": "5.2.1"
-  },
-  "eslintConfig": {
-    "extends": [
-      "./node_modules/standard/eslintrc.json"
-    ]
+    "dotenv": "^17.2.3",
+    "express": "5.2.1",
+    "mongoose": "^9.0.1"
   }
 }

@@ -1,0 +1,7 @@
+module.exports = {
+  extends: 'standard',
+  env: {
+    node: true,
+    es2021: true
+  }
+}
