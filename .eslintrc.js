@@ -2,6 +2,7 @@ module.exports = {
   extends: 'standard',
   env: {
     node: true,
-    es2021: true
+    es2021: true,
+    jest: true
   }
 }
