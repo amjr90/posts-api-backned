@@ -2,6 +2,7 @@ const mongoose = require('mongoose')
 const { server } = require('../index')
 const Post = require('../models/Post')
 const { initialPosts, api } = require('./helpers/helpers')
+const ObjectId = require('mongoose').Types.ObjectId
 
 beforeEach(async () => {
   await Post.deleteMany({})
@@ -31,7 +32,7 @@ test('a specific post is within the returned posts', async () => {
 
 test('a valid post can be added', async () => {
   const newPost = {
-    userId: 2,
+    userId: new ObjectId('64b7f8f5c2a1f2b4d5e6f7aa'),
     content: 'This is a newly added post.'
   }
 
