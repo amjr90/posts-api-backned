@@ -4,7 +4,7 @@ const userSchema = new mongoose.Schema({
   username: String,
   name: String,
   passwordHash: String,
-  notes: [{
+  posts: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Post'
   }]

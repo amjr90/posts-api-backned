@@ -1,5 +1,6 @@
 const postsRouter = require('express').Router()
-const Post = require('../models/Post')
+const Post = require('../models/Post.js')
+const User = require('../models/User')
 
 // Callback con promesas (versión anterior)
 // app.get('/api/posts', (req, res, next) => {
@@ -12,7 +13,7 @@ const Post = require('../models/Post')
 
 postsRouter.get('/', async (req, res, next) => {
   try {
-    const posts = await Post.find({})
+    const posts = await Post.find({}).populate('user', { username: 1, name: 1 })
     res.json(posts)
   } catch (err) {
     next(err)
@@ -47,32 +48,44 @@ postsRouter.delete('/:id', async (req, res, next) => {
 
 postsRouter.post('/', async (req, res, next) => {
   try {
-    const { userId, content } = req.body
+    const { user, content } = req.body
 
-    // Validación simple
-    if (!userId || !content) {
-      return res.status(400).json({ error: 'userId and content are required' })
+    if (!user || !content) {
+      return res.status(400).json({ error: 'user and content are required' })
     }
 
-    const newPost = await Post.create({ userId, content })
+    const userFinded = await User.findById(user)
+    if (!userFinded) {
+      return res.status(400).json({ error: 'Invalid userId' })
+    }
+
+    const newPost = new Post({
+      user,
+      content
+    })
+    const savedPost = await newPost.save()
+    userFinded.posts = userFinded.posts.concat(savedPost._id)
+    await userFinded.save()
     res.status(201).json(newPost)
   } catch (err) {
+    console.error('Error creating post:', err)
     next(err)
   }
 })
 
 postsRouter.put('/:id', async (req, res, next) => {
   try {
-    const { userId, content } = req.body
+    const { content } = req.body
 
     // Validación simple
-    if (!userId || !content) {
-      return res.status(400).json({ error: 'userId and content are required' })
+    if (!content) {
+      console.log('Missing content in request body')
+      return res.status(400).json({ error: 'content is required' })
     }
 
     const updatedPost = await Post.findByIdAndUpdate(
       req.params.id,
-      { userId, content },
+      { content },
       { new: true, runValidators: true, context: 'query' }
     )
 

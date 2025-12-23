@@ -1,13 +1,18 @@
 const mongoose = require('mongoose')
 const { server } = require('../index')
-const Post = require('../models/Post')
+const Post = require('../models/Post.js')
 const { initialPosts, api } = require('./helpers/helpers')
-const ObjectId = require('mongoose').Types.ObjectId
+const User = require('../models/User')
 
 beforeEach(async () => {
+  await User.deleteMany({})
   await Post.deleteMany({})
+
+  const user = new User({ username: 'testuser', name: 'Test User', passwordHash: 'testpassword' })
+  const savedUser = await user.save()
+
   for (const post of initialPosts) {
-    const postObject = new Post(post)
+    const postObject = new Post({ user: savedUser._id, content: post.content })
     await postObject.save()
   }
 })
@@ -31,8 +36,10 @@ test('a specific post is within the returned posts', async () => {
 })
 
 test('a valid post can be added', async () => {
+  const user = await User.findOne({ username: 'testuser' })
+
   const newPost = {
-    userId: new ObjectId('64b7f8f5c2a1f2b4d5e6f7aa'),
+    user: user._id,
     content: 'This is a newly added post.'
   }
 
@@ -52,7 +59,7 @@ test('a valid post can be added', async () => {
 
 test('post without content is not added', async () => {
   const newPost = {
-    userId: 3
+    user: '3'
   }
 
   await api
@@ -74,7 +81,7 @@ test('a specific post can be viewed', async () => {
     .expect(200)
     .expect('Content-Type', /application\/json/)
 
-  expect(resultPost.body).toEqual(postToView)
+  expect(resultPost.body.content).toEqual(postToView.content)
 })
 
 test('a post can be deleted', async () => {
@@ -101,7 +108,7 @@ test('a post can be updated', async () => {
   const postToUpdate = postsAtStart.body[0]
 
   const updatedPostData = {
-    userId: postToUpdate.userId,
+    user: postToUpdate.user,
     content: 'This content has been updated.'
   }
 
