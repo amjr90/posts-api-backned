@@ -7,6 +7,13 @@ beforeEach(async () => {
   await User.deleteMany({})
 })
 
+test('users returned as json', async () => {
+  await api
+    .get('/api/users')
+    .expect(200)
+    .expect('Content-Type', /application\/json/)
+})
+
 test('a valid user can be added', async () => {
   const newUser = {
     username: 'newuser',
@@ -45,10 +52,46 @@ test('user with existing username is not added', async () => {
     .send(newUser)
     .expect(400)
 
-  expect(result.body.error).toContain('`username` to be unique')
+  expect(result.body.error).toContain('Username must be unique')
 
   const usersAtEnd = await User.find({})
   expect(usersAtEnd).toHaveLength(1)
+})
+
+test('user with short password is not added', async () => {
+  const newUser = {
+    username: 'shortpassuser',
+    name: 'Short Pass User',
+    password: 'pw'
+  }
+
+  const result = await api
+    .post('/api/users')
+    .send(newUser)
+    .expect(400)
+
+  expect(result.body.error).toContain('Password must be at least 3 characters long')
+
+  const usersAtEnd = await User.find({})
+  expect(usersAtEnd).toHaveLength(0)
+})
+
+test('user with short username is not added', async () => {
+  const newUser = {
+    username: 'ab',
+    name: 'Short Username User',
+    password: 'validpassword'
+  }
+
+  const result = await api
+    .post('/api/users')
+    .send(newUser)
+    .expect(400)
+
+  expect(result.body.error).toContain('Username must be at least 3 characters long')
+
+  const usersAtEnd = await User.find({})
+  expect(usersAtEnd).toHaveLength(0)
 })
 
 afterAll(() => {
