@@ -1,6 +1,7 @@
 const postsRouter = require('express').Router()
 const Post = require('../models/Post.js')
 const User = require('../models/User')
+const userExtractor = require('../middleware/userExtractor')
 
 // Callback con promesas (versión anterior)
 // app.get('/api/posts', (req, res, next) => {
@@ -20,7 +21,7 @@ postsRouter.get('/', async (req, res, next) => {
   }
 })
 
-postsRouter.get('/:id', async (req, res, next) => {
+postsRouter.get('/:id', userExtractor, async (req, res, next) => {
   try {
     const post = await Post.findById(req.params.id)
     if (post) {
@@ -33,7 +34,7 @@ postsRouter.get('/:id', async (req, res, next) => {
   }
 })
 
-postsRouter.delete('/:id', async (req, res, next) => {
+postsRouter.delete('/:id', userExtractor, async (req, res, next) => {
   try {
     const result = await Post.deleteOne({ _id: req.params.id })
     if (result.deletedCount > 0) {
@@ -46,10 +47,10 @@ postsRouter.delete('/:id', async (req, res, next) => {
   }
 })
 
-postsRouter.post('/', async (req, res, next) => {
+postsRouter.post('/', userExtractor, async (req, res, next) => {
   try {
-    const { user, content } = req.body
-
+    const user = req.userId
+    const { content } = req.body
     if (!user || !content) {
       return res.status(400).json({ error: 'user and content are required' })
     }
@@ -73,7 +74,7 @@ postsRouter.post('/', async (req, res, next) => {
   }
 })
 
-postsRouter.put('/:id', async (req, res, next) => {
+postsRouter.put('/:id', userExtractor, async (req, res, next) => {
   try {
     const { content } = req.body
 

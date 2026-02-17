@@ -12,6 +12,7 @@ app.use(cors())
 
 const usersRouter = require('./controllers/users')
 const postsRouter = require('./controllers/posts')
+const loginRouter = require('./controllers/login')
 
 postsRouter.get('/', (req, res) => {
   res.send('<h1>Welcome to the Posts API</h1>')
@@ -19,6 +20,7 @@ postsRouter.get('/', (req, res) => {
 
 app.use('/api/posts', postsRouter)
 app.use('/api/users', usersRouter)
+app.use('/api/login', loginRouter)
 
 // Middleware de manejo de errores
 app.use(errorHandler)
